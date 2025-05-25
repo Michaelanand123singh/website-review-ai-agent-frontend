@@ -6,8 +6,9 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Updated to use your Render backend URL
-  const API_BASE_URL = 'https://website-review-ai-agent-backend.onrender.com';
+  // Backend URL options - uncomment the one you want to use
+  const API_BASE_URL = 'https://website-review-ai-agent-backend.onrender.com'; // Render (production)
+  // const API_BASE_URL = 'http://localhost:5000'; // Local development
 
   const submitUrl = async () => {
     setLoading(true);
