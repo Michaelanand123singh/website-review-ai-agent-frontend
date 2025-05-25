@@ -6,22 +6,35 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Updated to use your Render backend URL
+  const API_BASE_URL = 'https://website-review-ai-agent-backend.onrender.com';
+
   const submitUrl = async () => {
     setLoading(true);
     setError(null);
     setReport(null);
 
     try {
-      const res = await fetch('http://localhost:5000/api/review', {
+      const res = await fetch(`${API_BASE_URL}/api/review`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          // Add CORS headers if needed
+          'Accept': 'application/json',
+        },
         body: JSON.stringify({ url }),
       });
-      if (!res.ok) throw new Error('Failed to fetch report');
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || `Server error: ${res.status}`);
+      }
+      
       const data = await res.json();
       setReport(data.report);
     } catch (e) {
-      setError(e.message);
+      console.error('Error:', e);
+      setError(e.message || 'Failed to analyze website');
     } finally {
       setLoading(false);
     }
@@ -35,13 +48,42 @@ export default function App() {
         placeholder="Enter marketing agency website URL"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
-        style={{ width: '100%', padding: 10, fontSize: 16 }}
+        style={{ 
+          width: '100%', 
+          padding: 10, 
+          fontSize: 16,
+          border: '1px solid #ddd',
+          borderRadius: 4
+        }}
       />
-      <button onClick={submitUrl} disabled={loading || !url} style={{ marginTop: 10, padding: '10px 20px' }}>
+      <button 
+        onClick={submitUrl} 
+        disabled={loading || !url} 
+        style={{ 
+          marginTop: 10, 
+          padding: '10px 20px',
+          backgroundColor: loading || !url ? '#ccc' : '#007bff',
+          color: 'white',
+          border: 'none',
+          borderRadius: 4,
+          cursor: loading || !url ? 'not-allowed' : 'pointer'
+        }}
+      >
         {loading ? 'Analyzing...' : 'Analyze'}
       </button>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && (
+        <div style={{ 
+          color: 'red', 
+          backgroundColor: '#ffebee', 
+          padding: 10, 
+          borderRadius: 4, 
+          marginTop: 10,
+          border: '1px solid #ffcdd2'
+        }}>
+          <strong>Error:</strong> {error}
+        </div>
+      )}
 
       {report && (
         <div style={{ marginTop: 30 }}>
@@ -49,14 +91,33 @@ export default function App() {
           <p><strong>URL:</strong> <a href={report.url} target="_blank" rel="noreferrer">{report.url}</a></p>
           <p><strong>Description:</strong> {report.description}</p>
           <h3>Detailed Analysis</h3>
-          <pre style={{ whiteSpace: 'pre-wrap', backgroundColor: '#f7f7f7', padding: 10, borderRadius: 5 }}>
+          <pre style={{ 
+            whiteSpace: 'pre-wrap', 
+            backgroundColor: '#f7f7f7', 
+            padding: 15, 
+            borderRadius: 5,
+            border: '1px solid #ddd',
+            fontSize: 14,
+            lineHeight: 1.5,
+            maxHeight: 400,
+            overflow: 'auto'
+          }}>
             {report.analysis}
           </pre>
           <a
-            href={`http://localhost:5000/api/reports/${report.id}/download`}
+            href={`${API_BASE_URL}/api/reports/${report.id}/download`}
             target="_blank"
             rel="noreferrer"
-            style={{ display: 'inline-block', marginTop: 15, textDecoration: 'none', color: 'white', backgroundColor: '#007bff', padding: '10px 15px', borderRadius: 5 }}
+            style={{ 
+              display: 'inline-block', 
+              marginTop: 15, 
+              textDecoration: 'none', 
+              color: 'white', 
+              backgroundColor: '#28a745', 
+              padding: '10px 15px', 
+              borderRadius: 5,
+              fontWeight: 'bold'
+            }}
           >
             Download PDF
           </a>
